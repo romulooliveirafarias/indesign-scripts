@@ -1,2 +1,2 @@
-# indesihn-scripts
+# indesign-scripts
 Indesign scripts repository
