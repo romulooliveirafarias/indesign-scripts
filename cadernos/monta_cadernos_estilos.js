@@ -6,6 +6,7 @@
 //VARIÁVEIS GLOBAIS
 #target indesign;
 #targetengine "session"
+//----------------------------------
 var TipoCaderno = 0;
 var precapa = "";
 var poscapa = "";
@@ -53,7 +54,7 @@ for (var k = 0; k < arquivos.length; k++) {
         fontStyle: "Regular",
         pointSize: 8,
         leading: 8,
-        justification: Justification.CENTER_ALIGN,
+        justification: Justification.CENTER_ALIGN
       });
     }
 
@@ -63,6 +64,173 @@ for (var k = 0; k < arquivos.length; k++) {
 }
 
 var ArrayPrincipal = carregaCSV(selecionaCSV);
+
+// Criando Formulário
+// A Janela principal posuirá 4 painés:
+// 1. Informações sobre o caderno
+// 2. Informações sobre a capa
+// 3. Informações sobre o cabeçalho
+// 4. Informações sobre o preset de pdf
+
+// Dimensões padrão
+var label_size = [0, 0, 400, 20];
+var input_size = [0, 0, 160, 20];
+
+//// Janela principal
+var janelaConfig = new Window(
+  "palette",
+  "Configuração da montagem dos cadernos"
+);
+
+//// Painel 1 - CONFIGURAÇÕES DO CADERNO
+var painelCadernos = janelaConfig.add(
+  "panel",
+  undefined,
+  "CONFIGURAÇÕES DO CADERNO"
+);
+painelCadernos.spacing = 10;
+painelCadernos.margins = 30;
+
+var grupoTipoCaderno = painelCadernos.add("group");
+var textoTipoCaderno = grupoTipoCaderno.add(
+  "statictext",
+  label_size,
+  "Informe o tipo de caderno:"
+);
+var selectTipoCaderno = grupoTipoCaderno.add("dropdownlist", input_size, [
+  "Comum",
+  "Múltiplo de 4",
+  "Múltiplo de 8"
+]);
+
+var grupoNumeracao = painelCadernos.add("group");
+var statictextNumeracao = grupoNumeracao.add(
+  "statictext",
+  label_size,
+  "Numeração Inicial do Caderno: (Ex.: X= 9, C1209)"
+);
+var editTextNumeracao = grupoNumeracao.add("edittext", input_size, "1");
+
+var grupoDigitos = painelCadernos.add("group");
+var statictextDigitos = grupoDigitos.add(
+  "statictext",
+  label_size,
+  "Número de Dígitos do Código (capa e cabeçalho): (Ex.: X= 5, C1209)"
+);
+var editTextDigitos = grupoDigitos.add("edittext", input_size, "5");
+
+//// Painel 2 - CONFIGURAÇÕES DA CAPA
+var painelCapa = janelaConfig.add("panel", undefined, "CONFIGURAÇÕES DA CAPA");
+painelCapa.spacing = 10;
+painelCapa.margins = 30;
+
+var grupoPrefixo = painelCapa.add("group");
+var staticTextPrefixo = grupoPrefixo.add(
+  "statictext",
+  label_size,
+  "Prefixo do Código: (Ex.: X= P, P0901)"
+);
+var editTextPrefixo = grupoPrefixo.add("edittext", input_size);
+
+var grupoPosfixo = painelCapa.add("group");
+var statictextPosfixo = grupoPosfixo.add(
+  "statictext",
+  label_size,
+  "Posfixo do Código: (Ex.: X=_APLIC, M0901_APLIC)"
+);
+var editTextPosfixo = grupoPosfixo.add("edittext", input_size);
+
+var grupoCodificacao = painelCapa.add("group");
+var statictextCodificacao = grupoCodificacao.add(
+  "statictext",
+  label_size,
+  "Codificação: (Ex.: 0910)"
+);
+var selectCodificacao = grupoCodificacao.add("dropdownlist", input_size, [
+  "SIM",
+  "NÃO"
+]);
+selectCodificacao.selection = 0;
+
+//// Painel 3 - CONFIGURAÇÕES DE CABEÇALHO
+var painelCabecalho = janelaConfig.add(
+  "panel",
+  undefined,
+  "CONFIGURAÇÕES DE CABEÇALHO"
+);
+painelCabecalho.spacing = 10;
+painelCabecalho.margins = 30;
+
+var grupoPrefixoCab = painelCabecalho.add("group");
+var statictextPrefixoCab = grupoPrefixoCab.add(
+  "statictext",
+  label_size,
+  "Prefixo do Código: (Ex.: X= P, P0901)"
+);
+var editTextPrefixoCab = grupoPrefixoCab.add("edittext", input_size);
+
+var grupoPosfixoCab = painelCabecalho.add("group");
+var statictextPosfixoCab = grupoPosfixoCab.add(
+  "statictext",
+  label_size,
+  "Posfixo do Código: (Ex.: X=_APLIC, M0901_APLIC)"
+);
+var editTextPosfixoCab = grupoPosfixoCab.add("edittext", input_size);
+
+var grupoCodificacaoCab = painelCabecalho.add("group");
+var statictextCodificacaoCab = grupoCodificacaoCab.add(
+  "statictext",
+  label_size,
+  "Codificação: (Ex.: 0910)"
+);
+var selectCodificacaoCab = grupoCodificacaoCab.add("dropdownlist", input_size, [
+  "SIM",
+  "NÃO"
+]);
+selectCodificacaoCab.selection = 0;
+
+//// Painel 4 - CONFIGURAÇÕES DE PRESET DE PDF
+var painelPDF = janelaConfig.add(
+  "panel",
+  undefined,
+  "CONFIGURAÇÕES DO PDF PARA IMPRESSÃO"
+);
+painelPDF.spacing = 10;
+painelPDF.margins = 30;
+
+var grupoPDF = painelPDF.add("group");
+var statictextPDF = grupoPDF.add(
+  "statictext",
+  label_size,
+  "Selecione o preset de PDF"
+);
+var selectPDF = grupoPDF.add("dropdownlist", input_size, undefined, {
+  items: pdfPresets
+});
+
+var ok = janelaConfig.add("button", undefined, "OK");
+
+janelaConfig.show();
+
+ok.onClick = function () {
+  janelaConfig.close();
+  TipoCaderno = selectTipoCaderno.selection;
+  precapa = editTextPrefixo.text;
+  poscapa = editTextPosfixo.text;
+  codcapa = selectCodificacao.selection;
+  precabecalho = editTextPrefixoCab.text;
+  poscabecalho = editTextPosfixoCab.text;
+  codcabecalho = selectCodificacaoCab.selection;
+  casas_decimais = parseInt(editTextDigitos.text);
+  tralhas = "";
+  for (var p_digitos = 1; casas_decimais >= p_digitos; p_digitos++) {
+    tralhas = tralhas + "#";
+  }
+  NumeroCadernoInicial = editTextNumeracao.text;
+  pdfPreset = app.pdfExportPresets.item(String(selectPDF.selection));
+
+  montarCaderno(ArrayPrincipal, myFolder);
+};
 
 function carregaCSV() {
   selecionaCSV.open("r");
@@ -342,7 +510,11 @@ function mySnippet(documentoPrincipal, contagem, caderno, p_numeracao) {
                             frasever1[contadorver5 + 1];
                           var wordCodCapaVER1 = frasever1[contadorver5];
                           if (casas_decimais > 0) {
-                            for (var p_casas_decimais = 1; casas_decimais > p_casas_decimais; p_casas_decimais++) {
+                            for (
+                              var p_casas_decimais = 1;
+                              casas_decimais > p_casas_decimais;
+                              p_casas_decimais++
+                            ) {
                               wordCodCapaVER1 =
                                 wordCodCapaVER1 +
                                 frasever1[contadorver5 + p_casas_decimais];
@@ -383,7 +555,8 @@ function mySnippet(documentoPrincipal, contagem, caderno, p_numeracao) {
                           var p_cadernoTexto = inddcaderno + "";
                           for (
                             var p_contindd = 1;
-                            p_contindd <= casas_decimais - 3 - p_cadernoTexto.length;
+                            p_contindd <=
+                            casas_decimais - 3 - p_cadernoTexto.length;
                             p_contindd++
                           )
                             inddcaderno = "0" + inddcaderno;
@@ -420,7 +593,11 @@ function mySnippet(documentoPrincipal, contagem, caderno, p_numeracao) {
                   var wordChar = myWord[gg] + myWord[gg + 1];
                   var wordCodCapa = myWord[gg];
                   if (casas_decimais > 0) {
-                    for (var p_casas_decimais = 1; casas_decimais > p_casas_decimais; p_casas_decimais++) {
+                    for (
+                      var p_casas_decimais = 1;
+                      casas_decimais > p_casas_decimais;
+                      p_casas_decimais++
+                    ) {
                       wordCodCapa = wordCodCapa + myWord[gg + p_casas_decimais];
                     }
                   }
@@ -503,7 +680,11 @@ function mySnippet(documentoPrincipal, contagem, caderno, p_numeracao) {
                 if (xlz != chars - 1) {
                   var wordChar = procurado[xlz] + procurado[xlz + 1];
                   if (casas_decimais > 0) {
-                    for (var p_casas_decimais = 1; casas_decimais > p_casas_decimais; p_casas_decimais++) {
+                    for (
+                      var p_casas_decimais = 1;
+                      casas_decimais > p_casas_decimais;
+                      p_casas_decimais++
+                    ) {
                       wordcodcapa = procurado[xlz + p_casas_decimais];
                     }
                   }
@@ -570,7 +751,7 @@ function mySnippet(documentoPrincipal, contagem, caderno, p_numeracao) {
           var newSection = objdocumento.sections.add({
             pageStart: objdocumento.pages[0],
             continueNumbering: false,
-            pageNumberStart: 1,
+            pageNumberStart: 1
           });
           setsection = true;
         }
@@ -621,12 +802,12 @@ function ShowDialog(mensagem) {
   //<fragment>
   var myDialog = app.dialogs.add({
     name: "Produz Caderno - InDesign",
-    canCancel: false,
+    canCancel: false
   });
   //Add a dialog column.
   with (myDialog.dialogColumns.add()) {
     staticTexts.add({
-      staticLabel: mensagem,
+      staticLabel: mensagem
     });
   }
   //Show the dialog box.
@@ -639,12 +820,12 @@ function ShowConfirm(mensagem) {
   //<fragment>
   var myDialog = app.dialogs.add({
     name: "Produz Caderno - InDesign",
-    canCancel: true,
+    canCancel: true
   });
   //Add a dialog column.
   with (myDialog.dialogColumns.add()) {
     staticTexts.add({
-      staticLabel: mensagem,
+      staticLabel: mensagem
     });
   }
   //Show the dialog box.
@@ -652,163 +833,6 @@ function ShowConfirm(mensagem) {
 
   return myResult;
 }
-
-// Criando Formulário
-// A Janela principal posuirá uqatro painés
-// 1. Informações sobre o caderno
-// 2. Informações sbre a capa
-// 3. Informações sobre o cabeçalho
-// 4. Informações sobre o preset de pdf
-var janelaConfig = new Window("palette", "Configuração dos Cadernos");
-
-//// Painel 1 - CONFIGURAÇÕES DO CADERNO
-var painelCadernos = janelaConfig.add(
-  "panel",
-  undefined,
-  "CONFIGURAÇÕES DO CADERNO"
-);
-painelCadernos.spacing = 10;
-painelCadernos.margins = 30;
-
-var grupoTipoCaderno = painelCadernos.add("group");
-var textoTipoCaderno = grupoTipoCaderno.add(
-  "statictext",
-  [0, 0, 400, 20],
-  "Informe o tipo de caderno:"
-);
-var selectTipoCaderno = grupoTipoCaderno.add(
-  "dropdownlist",
-  [0, 0, 160, 20],
-  ["Comum", "Múltiplo de 4", "Múltiplo de 8"]
-);
-
-var grupoNumeracao = painelCadernos.add("group");
-var statictextNumeracao = grupoNumeracao.add(
-  "statictext",
-  [0, 0, 400, 20],
-  "Numeração Inicial do Caderno: (Ex.: X= 9, C1209)"
-);
-var editTextNumeracao = grupoNumeracao.add("edittext", [0, 0, 160, 20], "1");
-
-var grupoDigitos = painelCadernos.add("group");
-var statictextDigitos = grupoDigitos.add(
-  "statictext",
-  [0, 0, 400, 20],
-  "Número de Dígitos do Código (capa e cabeçalho): (Ex.: X= 5, C1209)"
-);
-var editTextDigitos = grupoDigitos.add("edittext", [0, 0, 160, 20], "5");
-
-//// Painel 2 - CONFIGURAÇÕES DA CAPA
-var painelCapa = janelaConfig.add("panel", undefined, "CONFIGURAÇÕES DA CAPA");
-painelCapa.spacing = 10;
-painelCapa.margins = 30;
-
-var grupoPrefixo = painelCapa.add("group");
-var staticTextPrefixo = grupoPrefixo.add(
-  "statictext",
-  [0, 0, 400, 20],
-  "Prefixo do Código: (Ex.: X= P, P0901)"
-);
-var editTextPrefixo = grupoPrefixo.add("edittext", [0, 0, 160, 20]);
-
-var grupoPosfixo = painelCapa.add("group");
-var statictextPosfixo = grupoPosfixo.add(
-  "statictext",
-  [0, 0, 400, 20],
-  "Posfixo do Código: (Ex.: X=_APLIC, M0901_APLIC)"
-);
-var editTextPosfixo = grupoPosfixo.add("edittext", [0, 0, 160, 20]);
-
-var grupoCodificacao = painelCapa.add("group");
-var statictextCodificacao = grupoCodificacao.add(
-  "statictext",
-  [0, 0, 400, 20],
-  "Codificação: (Ex.: 0910)"
-);
-var selectCodificacao = grupoCodificacao.add(
-  "dropdownlist",
-  [0, 0, 160, 20],
-  ["SIM", "NÃO"]
-);
-selectCodificacao.selection = 0;
-
-//// Painel 3 - CONFIGURAÇÕES DE CABEÇALHO
-var painelCabecalho = janelaConfig.add(
-  "panel",
-  undefined,
-  "CONFIGURAÇÕES DE CABEÇALHO"
-);
-painelCabecalho.spacing = 10;
-painelCabecalho.margins = 30;
-
-var grupoPrefixoCab = painelCabecalho.add("group");
-var statictextPrefixoCab = grupoPrefixoCab.add(
-  "statictext",
-  [0, 0, 400, 20],
-  "Prefixo do Código: (Ex.: X= P, P0901)"
-);
-var editTextPrefixoCab = grupoPrefixoCab.add("edittext", [0, 0, 160, 20]);
-
-var grupoPosfixoCab = painelCabecalho.add("group");
-var statictextPosfixoCab = grupoPosfixoCab.add(
-  "statictext",
-  [0, 0, 400, 20],
-  "Posfixo do Código: (Ex.: X=_APLIC, M0901_APLIC)"
-);
-var editTextPosfixoCab = grupoPosfixoCab.add("edittext", [0, 0, 160, 20]);
-
-var grupoCodificacaoCab = painelCabecalho.add("group");
-var statictextCodificacaoCab = grupoCodificacaoCab.add(
-  "statictext",
-  [0, 0, 400, 20],
-  "Codificação: (Ex.: 0910)"
-);
-var selectCodificacaoCab = grupoCodificacaoCab.add(
-  "dropdownlist",
-  [0, 0, 160, 20],
-  ["SIM", "NÃO"]
-);
-selectCodificacaoCab.selection = 0;
-
-//// Painel 4 - CONFIGURAÇÕES DE PRESET DE PDF
-var painelPDF = janelaConfig.add(
-  "panel",
-  undefined,
-  "CONFIGURAÇÕES DO PDF PARA IMPRESSÃO"
-);
-painelPDF.spacing = 10;
-painelPDF.margins = 30;
-
-var grupoPDF = painelPDF.add("group");
-var statictextPDF = grupoPDF.add(
-  "statictext",
-  [0, 0, 400, 20],
-  "Selecione o preset de PDF"
-);
-var selectPDF = grupoPDF.add('dropdownlist',[0, 0, 160, 20],undefined,{items:pdfPresets});
-
-var ok = janelaConfig.add("button", undefined, "OK");
-
-janelaConfig.show();
-
-ok.onClick = function () {
-  janelaConfig.close();
-  TipoCaderno = rTIpoCaderno.selection;
-  precapa = rPrefixo.text;
-  poscapa = rPosfixo.text;
-  codcapa = rCodificacao.selection;
-  precabecalho = rPrefixoCab.text;
-  poscabecalho = rPosfixoCab.text;
-  codcabecalho = rCodificacaoCab.selection;
-  casas_decimais = parseInt(rDigitos.text);
-  tralhas = "";
-  for (var p_digitos = 1; casas_decimais >= p_digitos; p_digitos++) {
-    tralhas = tralhas + "#";
-  }
-  NumeroCadernoInicial = rNumeracao.text;
-
-  montarCaderno(ArrayPrincipal, myFolder);
-};
 
 function ExibirNumDivisivel(numero, div) {
   num = numero;
@@ -886,7 +910,7 @@ function InserirPagina(objPagina, objdocumento) {
 function ExportarPDF(myPasta, documentoResultante, nomePdf) {
   var pasta = new Folder(myPasta + "/Cadernos");
   if (pasta.exists == false) pasta.create();
-  var pdfPreset = app.pdfExportPresets.item(String(selectPDF.selection));
+
   documentoResultante.exportFile(
     ExportFormat.pdfType,
     File(pasta + "/" + nomePdf + ".pdf"),
