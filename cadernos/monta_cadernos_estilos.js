@@ -37,6 +37,8 @@ var selecionaCSV = File.openDialog(
 var myFolder = Folder.selectDialog("Selecione a pasta dos blocos:");
 
 var arquivos = myFolder.getFiles();
+var tralhas_substituidas = 0;
+var total_tralhas = 0;
 
 for (var k = 0; k < arquivos.length; k++) {
   arquivo = arquivos[k];
@@ -58,6 +60,45 @@ for (var k = 0; k < arquivos.length; k++) {
       });
     }
 
+    checkTralhas();
+    countTralhas();
+
+    function checkTralhas() {
+      app.findGrepPreferences = app.changeGrepPreferences = null;
+
+      var tralhas_buscadas = "^\\d\\d\\)";
+
+      app.findGrepPreferences.findWhat = tralhas_buscadas;
+
+      var tralhas_encontradas = doc.findGrep();
+
+      for (var j = 0; j < tralhas_encontradas.length; j++) {
+        var tralha = tralhas_encontradas[j];
+
+        tralha.select();
+
+        app.changeGrepPreferences.changeTo = "##)";
+
+        doc.changeGrep();
+        tralhas_substituidas = tralhas_substituidas + 1;
+      }
+    }
+
+    function countTralhas() {
+      app.findGrepPreferences = app.changeGrepPreferences = null;
+
+      var tralhas_buscadas = "^##\\)";
+
+      app.findGrepPreferences.findWhat = tralhas_buscadas;
+
+      var tralhas_encontradas = doc.findGrep();
+
+      for (var j = 0; j < tralhas_encontradas.length; j++) {
+        
+        total_tralhas = total_tralhas + 1;
+      }
+    }
+
     doc.save();
     doc.close();
   }
@@ -71,10 +112,12 @@ var ArrayPrincipal = carregaCSV(selecionaCSV);
 // 2. Informações sobre a capa
 // 3. Informações sobre o cabeçalho
 // 4. Informações sobre o preset de pdf
+// 5. Informações sobre tralhas e itens
 
 // Dimensões padrão
 var label_size = [0, 0, 400, 20];
 var input_size = [0, 0, 160, 20];
+var total_size = [0, 0, 560, 20];
 
 //// Janela principal
 var janelaConfig = new Window(
@@ -208,28 +251,55 @@ var selectPDF = grupoPDF.add("dropdownlist", input_size, undefined, {
   items: pdfPresets
 });
 
+//// Painel 5 - INFORMAÇÕES DE TRALHAS E ITENS
+var painelTralhas = janelaConfig.add(
+  "panel",
+  undefined,
+  "INFORMAÇÕES SOBRE TRALHAS E ITENS"
+);
+painelTralhas.spacing = 10;
+painelTralhas.margins = 30;
+
+var grupoTralhas = painelTralhas.add("group");
+var statictextTralhas = grupoTralhas.add(
+  "statictext",
+  total_size,
+  "Substituímos '\d\d)' por '##' em " + tralhas_substituidas + " ocorrências"
+);
+var grupoItens = painelTralhas.add("group");
+var statictextItens = grupoItens.add(
+  "statictext",
+  total_size,
+  "Com base nas tralhas encontradas, identificamos um total de " + total_tralhas + " itens"
+);
+
 var ok = janelaConfig.add("button", undefined, "OK");
 
 janelaConfig.show();
 
 ok.onClick = function () {
-  janelaConfig.close();
-  TipoCaderno = selectTipoCaderno.selection;
-  precapa = editTextPrefixo.text;
-  poscapa = editTextPosfixo.text;
-  codcapa = selectCodificacao.selection;
-  precabecalho = editTextPrefixoCab.text;
-  poscabecalho = editTextPosfixoCab.text;
-  codcabecalho = selectCodificacaoCab.selection;
-  casas_decimais = parseInt(editTextDigitos.text);
-  tralhas = "";
-  for (var p_digitos = 1; casas_decimais >= p_digitos; p_digitos++) {
-    tralhas = tralhas + "#";
-  }
-  NumeroCadernoInicial = editTextNumeracao.text;
-  pdfPreset = app.pdfExportPresets.item(String(selectPDF.selection));
+  pdfPresetname = String(selectPDF.selection);
+  if (pdfPresetname == "null") {
+    alert("Você precisa selecionar um preset de PDF para continuar");
+  } else {
+    janelaConfig.close();
+    TipoCaderno = selectTipoCaderno.selection;
+    precapa = editTextPrefixo.text;
+    poscapa = editTextPosfixo.text;
+    codcapa = selectCodificacao.selection;
+    precabecalho = editTextPrefixoCab.text;
+    poscabecalho = editTextPosfixoCab.text;
+    codcabecalho = selectCodificacaoCab.selection;
+    casas_decimais = parseInt(editTextDigitos.text);
+    tralhas = "";
+    for (var p_digitos = 1; casas_decimais >= p_digitos; p_digitos++) {
+      tralhas = tralhas + "#";
+    }
+    NumeroCadernoInicial = editTextNumeracao.text;
+    pdfPreset = app.pdfExportPresets.item(String(selectPDF.selection));
 
-  montarCaderno(ArrayPrincipal, myFolder);
+    montarCaderno(ArrayPrincipal, myFolder);
+  }
 };
 
 function carregaCSV() {
