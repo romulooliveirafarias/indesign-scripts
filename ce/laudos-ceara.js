@@ -16,7 +16,7 @@ var caminhoLaudos =
     .absoluteURI + "/";
 var caminhoJSON = File.openDialog("Selecione um arquivo JSON");
 
-var logFile = new File("C:/Users/romulo.farias/Documents/CE - LAUDOS/EF FINAL/log.txt");
+var logFile = new File("C:/Users/romulo.farias/Documents/LAUDOS CE/log.txt");
 logFile.open("w");
 logFile.write("Log de execução: " + new Date() + "/n");
 logFile.close();
