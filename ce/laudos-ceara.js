@@ -18,7 +18,7 @@ var caminhoJSON = File.openDialog("Selecione um arquivo JSON");
 
 var logFile = new File("C:/Users/romulo.farias/Documents/LAUDOS CE/log.txt");
 logFile.open("w");
-logFile.write("Log de execução: " + new Date() + "/n");
+logFile.write("Log de execução: " + new Date() + "\n");
 logFile.close();
 
 caminhoJSON.open("r");
@@ -35,10 +35,9 @@ for (i = 0; i < jsonItens.length; i++) {
 
   puxaDados1(jsonItem);
   criaTabela();
-  criaUltimoCaracater();
+  /* criaUltimoCaracater(); */
   formataTabela();
   puxaDados2(jsonItem);
-  
 }
 
 function puxaDados1(item) {
@@ -51,13 +50,12 @@ function puxaDados2(item) {
   crede.contents = item.crede;
 
   logFile.open("a");
-  logFile.write(item.escola + '\n');
+  logFile.write(item.escola + "\n");
   logFile.close();
 
-  $.sleep( 3000 )
+  $.sleep(3000);
 
   removeBlankPages();
-  
 }
 
 function criaTabela() {
@@ -79,17 +77,26 @@ function criaTabela() {
     doc.changeGrep();
     app.selection[0].convertToTable("*", "|");
   }
-
 }
 
 function criaUltimoCaracater() {
+  logFile.open("a");
+
   var myTable = app.activeDocument.stories
     .everyItem()
     .tables.everyItem()
     .getElements();
 
   var lastCell = myTable[0].cells[myTable[0].cells.length - 1];
-  lastCell.contents = lastCell.contents + " ";
+  if (lastCell.contents.length > 0) {
+    lastCell.contents = lastCell.contents
+    logFile.write("Última célula: " + lastCell.contents + "\n");
+
+  } else {
+    lastCell.contents = " ";
+    logFile.write("Nova última célula: " + lastCell.contents + "\n");
+  }
+  logFile.close();
 }
 
 function formataTabela() {
@@ -121,7 +128,7 @@ function resetDoc() {
 
 function removeBlankPages() {
   logFile.open("a");
-  
+
   var myTable = app.activeDocument.stories
     .everyItem()
     .tables.everyItem()
@@ -132,15 +139,18 @@ function removeBlankPages() {
   var lastPageContents =
     lastCell.insertionPoints[0].parentTextFrames[0].parentPage.name;
 
-    logFile.write('Última página com conteúdo' + lastPageContents + '\n');
+  logFile.write("Última célula: " + lastCell.contents + "\n");
+  logFile.write("Última página com conteúdo: " + lastPageContents + "\n");
 
   if (doc.pages.length > 1) {
     var lastPage = doc.pages[doc.pages.length - 1];
 
-    logFile.write('Última página' + lastPage.name + '\n');
+    logFile.write("Última página: " + lastPage.name + "\n");
 
     if (lastPage.name > lastPageContents) {
-      logFile.write('Removendo última página:' + lastPage.name + '\n---------/\n');
+      logFile.write(
+        "Removendo última página: " + lastPage.name + "\n---------/\n"
+      );
       lastPage.remove();
 
       logFile.close();
