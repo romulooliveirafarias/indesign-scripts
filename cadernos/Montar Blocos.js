@@ -1,4 +1,5 @@
-// Versão atualizada em 15.07.24 por Rômulo Farias
+// Versão atualizada em 19.07.24 por Rômulo Farias
+// Reinserção do trecho que remove seções da página dentrod a função encadear
 
 #target indesign;
 #targetengine "session";
@@ -80,7 +81,7 @@ selectINDT.onClick = function () {
   if (caminhoIndt) {
     if (File(caminhoIndt + "/Bloco.indt").exists) {
       staticTextINDT.text = "Caminho INDT: OK ";
-      temINDT = 1
+      temINDT = 1;
       checarCaminhos();
     } else {
       alert(
@@ -99,7 +100,7 @@ selectINDD.onClick = function () {
   if (caminhoIndd) {
     staticTextINDD.text = "Caminho INDDs: OK ";
     checarArquivosIndd();
-    temINDD = 1
+    temINDD = 1;
     checarCaminhos();
   }
 };
@@ -274,6 +275,11 @@ function encadear(documento) {
     var firstTextFrame = currentPage.textFrames[0];
     lastTextFrame.nextTextFrame = firstTextFrame;
   }
+
+  // Remova a seção da página
+if (currentPage.appliedSection) {
+  currentPage.appliedSection.remove();
+}
 }
 
 //Função que remove as páginas mestras excessivas
