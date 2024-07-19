@@ -368,6 +368,12 @@ if (app.documents.length > 0) {
     for (j = 0; j < keys.length; j++) {
       jsonKey = keys[j];
 
+      // Criando uma variable para cada chave do json/cada campo do datamerge
+        var newVariable = doc.textVariables.add();
+        newVariable.name = jsonKey;
+        newVariable.variableType = VariableTypes.CUSTOM_TEXT_TYPE;
+        newVariable.variableOptions.contents = jsonKey;
+
       app.findTextPreferences = app.changeTextPreferences = null;
       var buscar = (app.findTextPreferences.findWhat = "<<" + jsonKey + ">>");
 
@@ -378,11 +384,6 @@ if (app.documents.length > 0) {
 
         curFound.select();
 
-        // Criando uma variable para cada chave do json/cada cmapo do datamerge
-        var newVariable = doc.textVariables.add();
-        newVariable.name = jsonKey;
-        newVariable.variableType = VariableTypes.CUSTOM_TEXT_TYPE;
-        newVariable.variableOptions.contents = jsonKey;
         app.selection[0].textVariableInstances.add({
           associatedTextVariable: newVariable
         });
