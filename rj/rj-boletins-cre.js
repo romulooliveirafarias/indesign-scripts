@@ -1,24 +1,118 @@
+#target indesign;
+#targetengine "session";
+
 //Resetando as preferências de PDF do Indesign
 app.pdfExportPreferences.pageRange = PageRange.ALL_PAGES;
 app.pdfExportPreferences.viewPDF = false;
 
-var doc = app.activeDocument;
-var docPath = doc.filePath;
-var docname = doc.name.split(".")[0];
-var docGerando = docPath + "/" + docname + "_gerando.indd";
-doc.save(new File(docGerando));
+var statictext_size = [0, 0, 460, 20];
+var edittext_size = [0, 0, 460, 30];
+// Cria a caixa de diálogo inicial
+var main_window = new Window("palette", "Gerador de arquivos variáveis");
+main_window.margins = [15, 20, 15, 20];
+var main_group = main_window.add("group", undefined, "");
+main_group.orientation = "row";
+main_group.alignChildren = "top";
+main_group.maximumSize.height = 600;
+var panel_group = main_group.add("group", undefined, "");
+panel_group.orientation = "column";
+panel_group.alignment = "fill";
+panel_group.alignChildren = "left";
+panel_group.maximumSize.height = 5000;
+panel_group.spacing = 40;
+// Painel para seleção da pasta onde os arquivos serão salvos
+var path_panel = panel_group.add(
+  "panel",
+  undefined,
+  "Informe a pasta onde os arquivos serão salvos"
+);
+path_panel.alignChildren = "left";
+path_panel.margins = 20;
+path_panel.minimumSize.width = 500;
+var path_panel_txt01 = path_panel.add("edittext", edittext_size, "");
+var path_panel_btn01 = path_panel.add("button", undefined, "Selecionar Pasta");
+//Painel para seleção do arquivo json.
+var json_panel = panel_group.add(
+  "panel",
+  undefined,
+  "Informe o endereço do arquivo json"
+);
+json_panel.alignChildren = "left";
+json_panel.margins = 20;
+json_panel.minimumSize.width = 500;
+var json_panel_txt01 = json_panel.add("edittext", edittext_size, "");
+var json_panel_btn01 = json_panel.add("button", undefined, "Selecionar Json");
 
-var page_itens = doc.pageItems;
+var bimestre_panel = panel_group.add("panel", undefined, "Informe o bimestre");
+bimestre_panel.alignChildren = "left";
+bimestre_panel.margins = 20;
+bimestre_panel.minimumSize.width = 500;
 
-// Caixas de diálogo para selelecionar pasta onde estão máscaras e pasta onde serão salvas os boletins
-var pastaCartazes =
-  Folder.selectDialog("Selecione a pasta onde deseja salvar os arquivos")
-    .absoluteURI + "/";
-var caminhoJSON = File.openDialog("Selecione um arquivo JSON");
+var bimestre_list = bimestre_panel.add("dropdownlist", undefined, [
+  "1",
+  "2",
+  "3",
+  "4",
+]);
+bimestre_list.preferredSize = [460, 30];
 
-caminhoJSON.open("r");
+var btn_group = panel_group.add("group");
+btn_group.minimumSize.width = 500;
+btn_group.alignment = "fill fill";
+var main_ok_btn = btn_group.add("button", undefined, "OK");
+main_ok_btn.enabled = true;
+var main_cancel_btn = btn_group.add("button", undefined, "Cancelar");
 
-var infoObject = caminhoJSON.read();
+path_panel_btn01.onClick = function () {
+  selected_folder = Folder.selectDialog("Selecione uma pasta").absoluteURI;
+  path_panel_txt01.text = selected_folder;
+  var logFile = new File(selected_folder + "/log.txt");
+  logFile.open("w");
+  logFile.write(
+    "Gerador de arquivos variáveis iniciado em: " +
+      new Date() +
+      "\n\n ----------------------------------------------------\n\n"
+  );
+  logFile.close();
+};
+
+json_panel_btn01.onClick = function () {
+  selected_json = File.openDialog("Selecione um arquivo JSON");
+  json_panel_txt01.text = selected_json.absoluteURI;
+  var keys = getKeys(selected_json)[0];
+  var jsonLength = getKeys(selected_json)[1];
+  static_file_counter.text = "Serão gerados " + jsonLength + " arquivos.";
+  for (var i = 0; i < keys.length; i++) {
+    listbox_folder_src.add("item", keys[i]);
+    listbox_file_src.add("item", keys[i]);
+  }
+};
+
+//ANCHOR Função do botão OK - Aciona a função principal
+main_ok_btn.onClick = function () {
+  main_window.close();
+
+  main(selected_json, selected_folder);
+};
+//ANCHOR Função do botão Cancelar - Encerra o script
+main_cancel_btn.onClick = function () {
+  main_window.close();
+};
+
+var show_panel = main_window.show();
+
+function main(selected_json, selected_folder) {
+  var doc = app.activeDocument;
+  var docPath = doc.filePath;
+  var docname = doc.name.split(".")[0];
+  var docGerando = docPath + "/" + docname + "_gerando.indd";
+  doc.save(new File(docGerando));
+
+  var page_itens = doc.pageItems;
+
+  selected_json.open("r");
+
+  var infoObject = selected_json.read();
 
 // Trasnforma o obejto em objeto json interpretável pelo indeisgn
 var newJson = eval("(" + infoObject + ")");
@@ -310,10 +404,10 @@ for (i = 0; i < jsonItens.length; i++) {
   // salva o pdf na pasta selecionada anteriormente.
   var tipo_pdf = app.pdfExportPresets.item("[Smallest File Size]");
   var pdfname =
-    pastaCartazes +
+    selected_folder +
     "/" +
     jsonItem.REGIONAL + "_" + jsonItem.ETAPA_MINI +
-    "_ADR1_2024" +
+    "_ADR3_2024" +
     ".pdf";
   doc.exportFile(ExportFormat.PDF_TYPE, new File(pdfname), false, tipo_pdf);
 }
@@ -333,89 +427,89 @@ function redimensiona() {
     ["barra", "VL_N01_ESCRITA_REG_1B", "bh_escrita_n1_1b", 644, 100],
     ["barra", "VL_N02_ESCRITA_REG_1B", "bh_escrita_n2_1b", 644, 100],
     ["barra", "VL_N03_ESCRITA_REG_1B", "bh_escrita_n3_1b", 644, 100],
-    /* ["barra", "VL_N04_ESCRITA_REG_1B", "bh_escrita_n4_1b", 200, 100], */
-    
+    /* ["barra", "VL_N04_ESCRITA_REG_1B", "bh_escrita_n4_1b", 644, 100], */
+
     /* ["barra", "VL_N01_LP_REG_2B", "bh_lp_n1_2b", 644, 100],
     ["barra", "VL_N02_LP_REG_2B", "bh_lp_n2_2b", 644, 100],
-    ["barra", "VL_N03_LP_REG_2B", "bh_lp_n3_2b", 644, 100],
-    ["barra", "VL_N04_LP_REG_2B", "bh_lp_n4_2b", 644, 100], */
-    
+    ["barra", "VL_N03_LP_REG_2B", "bh_lp_n3_2b", 644, 100], */
+    /* ["barra", "VL_N04_LP_REG_2B", "bh_lp_n4_2b", 644, 100], */
+
     /* ["barra", "VL_N01_MT_REG_2B", "bh_mt_n1_2b", 644, 100],
     ["barra", "VL_N02_MT_REG_2B", "bh_mt_n2_2b", 644, 100],
-    ["barra", "VL_N03_MT_REG_2B", "bh_mt_n3_2b", 644, 100],
-    ["barra", "VL_N04_MT_REG_2B", "bh_mt_n4_2b", 644, 100], */
-   
+    ["barra", "VL_N03_MT_REG_2B", "bh_mt_n3_2b", 644, 100], */
+   /*  ["barra", "VL_N04_MT_REG_2B", "bh_mt_n4_2b", 644, 100], */
+
     /* ["barra", "VL_N01_LP_REG_3B", "bh_lp_n1_3b", 644, 100],
     ["barra", "VL_N02_LP_REG_3B", "bh_lp_n2_3b", 644, 100],
-    ["barra", "VL_N03_LP_REG_3B", "bh_lp_n3_3b", 644, 100],
-    ["barra", "VL_N04_LP_REG_3B", "bh_lp_n4_3b", 644, 100], */
-    
-    /* ["barra", "VL_N01_MT_REG_3B", "bh_mt_n1_3b", 644, 100],
-    ["barra", "VL_N02_MT_REG_3B", "bh_mt_n2_3b", 644, 100],
-    ["barra", "VL_N03_MT_REG_3B", "bh_mt_n3_3b", 644, 100],
-    ["barra", "VL_N04_MT_REG_3B", "bh_mt_n4_3b", 644, 100], */
+    ["barra", "VL_N03_LP_REG_3B", "bh_lp_n3_3b", 644, 100], */
+    /* ["barra", "VL_N04_LP_REG_3B", "bh_lp_n4_3b", 644, 100], */
 
-    /*  ["barra", "VL_N01_ESCRITA_REG_3B", "bh_escrita_n1_3b", 200, 100],
-    ["barra", "VL_N02_ESCRITA_REG_3B", "bh_escrita_n2_3b", 200, 100],
-    ["barra", "VL_N03_ESCRITA_REG_3B", "bh_escrita_n3_3b", 200, 100],
-    ["barra", "VL_N04_ESCRITA_REG_3B", "bh_escrita_n4_3b", 200, 100], */
-    
-    /* ["barra", "VL_N01_LP_REG_4B", "bh_lp_n1_4b", 644, 100],
+   /*  ["barra", "VL_N01_MT_REG_3B", "bh_mt_n1_3b", 644, 100],
+    ["barra", "VL_N02_MT_REG_3B", "bh_mt_n2_3b", 644, 100],
+    ["barra", "VL_N03_MT_REG_3B", "bh_mt_n3_3b", 644, 100], */
+    /* ["barra", "VL_N04_MT_REG_3B", "bh_mt_n4_3b", 644, 100], */
+
+   /*   ["barra", "VL_N01_ESCRITA_REG_3B", "bh_escrita_n1_3b", 644, 100],
+    ["barra", "VL_N02_ESCRITA_REG_3B", "bh_escrita_n2_3b", 644, 100],
+    ["barra", "VL_N03_ESCRITA_REG_3B", "bh_escrita_n3_3b", 644, 100], */
+    /* ["barra", "VL_N04_ESCRITA_REG_3B", "bh_escrita_n4_3b", 644, 100], */
+
+   /*  ["barra", "VL_N01_LP_REG_4B", "bh_lp_n1_4b", 644, 100],
     ["barra", "VL_N02_LP_REG_4B", "bh_lp_n2_4b", 644, 100],
-    ["barra", "VL_N03_LP_REG_4B", "bh_lp_n3_4b", 644, 100],
-    ["barra", "VL_N04_LP_REG_4B", "bh_lp_n4_4b", 644, 100], */
-    
-    /* ["barra", "VL_N01_MT_REG_4B", "bh_mt_n1_4b", 644, 100],
+    ["barra", "VL_N03_LP_REG_4B", "bh_lp_n3_4b", 644, 100], */
+    /* ["barra", "VL_N04_LP_REG_4B", "bh_lp_n4_4b", 644, 100], */
+
+   /*  ["barra", "VL_N01_MT_REG_4B", "bh_mt_n1_4b", 644, 100],
     ["barra", "VL_N02_MT_REG_4B", "bh_mt_n2_4b", 644, 100],
-    ["barra", "VL_N03_MT_REG_4B", "bh_mt_n3_4b", 644, 100],
-    ["barra", "VL_N04_MT_REG_4B", "bh_mt_n4_4b", 644, 100], */
-    
+    ["barra", "VL_N03_MT_REG_4B", "bh_mt_n3_4b", 644, 100], */
+    /* ["barra", "VL_N04_MT_REG_4B", "bh_mt_n4_4b", 644, 100], */
+
     /// PROVA RIO CEBRASPE
 
-    /* ["barra", "VL_N01_CEBRASPE_LP_REG_2021", "bh_lp_n1_2021", 200, 100],
-    ["barra", "VL_N02_CEBRASPE_LP_REG_2021", "bh_lp_n2_2021", 200, 100],
-    ["barra", "VL_N03_CEBRASPE_LP_REG_2021", "bh_lp_n3_2021", 200, 100],
-    ["barra", "VL_N04_CEBRASPE_LP_REG_2021", "bh_lp_n4_2021", 200, 100],
+    /* ["barra", "VL_N01_CEBRASPE_LP_REG_2021", "bh_lp_n1_2021", 644, 100],
+    ["barra", "VL_N02_CEBRASPE_LP_REG_2021", "bh_lp_n2_2021", 644, 100],
+    ["barra", "VL_N03_CEBRASPE_LP_REG_2021", "bh_lp_n3_2021", 644, 100],
+    ["barra", "VL_N04_CEBRASPE_LP_REG_2021", "bh_lp_n4_2021", 644, 100],
 
-    ["barra", "VL_N01_CEBRASPE_LP_REG_2022", "bh_lp_n1_2022", 200, 100],
-    ["barra", "VL_N02_CEBRASPE_LP_REG_2022", "bh_lp_n2_2022", 200, 100],
-    ["barra", "VL_N03_CEBRASPE_LP_REG_2022", "bh_lp_n3_2022", 200, 100],
-    ["barra", "VL_N04_CEBRASPE_LP_REG_2022", "bh_lp_n4_2022", 200, 100],
+    ["barra", "VL_N01_CEBRASPE_LP_REG_2022", "bh_lp_n1_2022", 644, 100],
+    ["barra", "VL_N02_CEBRASPE_LP_REG_2022", "bh_lp_n2_2022", 644, 100],
+    ["barra", "VL_N03_CEBRASPE_LP_REG_2022", "bh_lp_n3_2022", 644, 100],
+    ["barra", "VL_N04_CEBRASPE_LP_REG_2022", "bh_lp_n4_2022", 644, 100],
 
-    ["barra", "VL_N01_CEBRASPE_LP_REG_2023", "bh_lp_n1_2023", 200, 100],
-    ["barra", "VL_N02_CEBRASPE_LP_REG_2023", "bh_lp_n2_2023", 200, 100],
-    ["barra", "VL_N03_CEBRASPE_LP_REG_2023", "bh_lp_n3_2023", 200, 100],
-    ["barra", "VL_N04_CEBRASPE_LP_REG_2023", "bh_lp_n4_2023", 200, 100],
+    ["barra", "VL_N01_CEBRASPE_LP_REG_2023", "bh_lp_n1_2023", 644, 100],
+    ["barra", "VL_N02_CEBRASPE_LP_REG_2023", "bh_lp_n2_2023", 644, 100],
+    ["barra", "VL_N03_CEBRASPE_LP_REG_2023", "bh_lp_n3_2023", 644, 100],
+    ["barra", "VL_N04_CEBRASPE_LP_REG_2023", "bh_lp_n4_2023", 644, 100],
 
-    ["barra", "VL_N01_CEBRASPE_MT_REG_2021", "bh_mt_n1_2021", 200, 100],
-    ["barra", "VL_N02_CEBRASPE_MT_REG_2021", "bh_mt_n2_2021", 200, 100],
-    ["barra", "VL_N03_CEBRASPE_MT_REG_2021", "bh_mt_n3_2021", 200, 100],
-    ["barra", "VL_N04_CEBRASPE_MT_REG_2021", "bh_mt_n4_2021", 200, 100],
+    ["barra", "VL_N01_CEBRASPE_MT_REG_2021", "bh_mt_n1_2021", 644, 100],
+    ["barra", "VL_N02_CEBRASPE_MT_REG_2021", "bh_mt_n2_2021", 644, 100],
+    ["barra", "VL_N03_CEBRASPE_MT_REG_2021", "bh_mt_n3_2021", 644, 100],
+    ["barra", "VL_N04_CEBRASPE_MT_REG_2021", "bh_mt_n4_2021", 644, 100],
 
-    ["barra", "VL_N01_CEBRASPE_MT_REG_2022", "bh_mt_n1_2022", 200, 100],
-    ["barra", "VL_N02_CEBRASPE_MT_REG_2022", "bh_mt_n2_2022", 200, 100],
-    ["barra", "VL_N03_CEBRASPE_MT_REG_2022", "bh_mt_n3_2022", 200, 100],
-    ["barra", "VL_N04_CEBRASPE_MT_REG_2022", "bh_mt_n4_2022", 200, 100],
+    ["barra", "VL_N01_CEBRASPE_MT_REG_2022", "bh_mt_n1_2022", 644, 100],
+    ["barra", "VL_N02_CEBRASPE_MT_REG_2022", "bh_mt_n2_2022", 644, 100],
+    ["barra", "VL_N03_CEBRASPE_MT_REG_2022", "bh_mt_n3_2022", 644, 100],
+    ["barra", "VL_N04_CEBRASPE_MT_REG_2022", "bh_mt_n4_2022", 644, 100],
 
-    ["barra", "VL_N01_CEBRASPE_MT_REG_2023", "bh_mt_n1_2023", 200, 100],
-    ["barra", "VL_N02_CEBRASPE_MT_REG_2023", "bh_mt_n2_2023", 200, 100],
-    ["barra", "VL_N03_CEBRASPE_MT_REG_2023", "bh_mt_n3_2023", 200, 100],
-    ["barra", "VL_N04_CEBRASPE_MT_REG_2023", "bh_mt_n4_2023", 200, 100],
+    ["barra", "VL_N01_CEBRASPE_MT_REG_2023", "bh_mt_n1_2023", 644, 100],
+    ["barra", "VL_N02_CEBRASPE_MT_REG_2023", "bh_mt_n2_2023", 644, 100],
+    ["barra", "VL_N03_CEBRASPE_MT_REG_2023", "bh_mt_n3_2023", 644, 100],
+    ["barra", "VL_N04_CEBRASPE_MT_REG_2023", "bh_mt_n4_2023", 644, 100],
 
-    ["barra", "VL_N01_CEBRASPE_ESCRITA_REG_2021", "bh_escrita_n1_2021", 200, 100],
-    ["barra", "VL_N02_CEBRASPE_ESCRITA_REG_2021", "bh_escrita_n2_2021", 200, 100],
-    ["barra", "VL_N03_CEBRASPE_ESCRITA_REG_2021", "bh_escrita_n3_2021", 200, 100],
-    ["barra", "VL_N04_CEBRASPE_ESCRITA_REG_2021", "bh_escrita_n4_2021", 200, 100],
+    ["barra", "VL_N01_CEBRASPE_ESCRITA_REG_2021", "bh_escrita_n1_2021", 644, 100],
+    ["barra", "VL_N02_CEBRASPE_ESCRITA_REG_2021", "bh_escrita_n2_2021", 644, 100],
+    ["barra", "VL_N03_CEBRASPE_ESCRITA_REG_2021", "bh_escrita_n3_2021", 644, 100],
+    ["barra", "VL_N04_CEBRASPE_ESCRITA_REG_2021", "bh_escrita_n4_2021", 644, 100],
 
-    ["barra", "VL_N01_CEBRASPE_ESCRITA_REG_2022", "bh_escrita_n1_2022", 200, 100],
-    ["barra", "VL_N02_CEBRASPE_ESCRITA_REG_2022", "bh_escrita_n2_2022", 200, 100],
-    ["barra", "VL_N03_CEBRASPE_ESCRITA_REG_2022", "bh_escrita_n3_2022", 200, 100],
-    ["barra", "VL_N04_CEBRASPE_ESCRITA_REG_2022", "bh_escrita_n4_2022", 200, 100],
-    
-    ["barra", "VL_N01_CEBRASPE_ESCRITA_REG_2023", "bh_escrita_n1_2023", 200, 100],
-    ["barra", "VL_N02_CEBRASPE_ESCRITA_REG_2023", "bh_escrita_n2_2023", 200, 100],
-    ["barra", "VL_N03_CEBRASPE_ESCRITA_REG_2023", "bh_escrita_n3_2023", 200, 100],
-    ["barra", "VL_N04_CEBRASPE_ESCRITA_REG_2023", "bh_escrita_n4_2023", 200, 100], */
+    ["barra", "VL_N01_CEBRASPE_ESCRITA_REG_2022", "bh_escrita_n1_2022", 644, 100],
+    ["barra", "VL_N02_CEBRASPE_ESCRITA_REG_2022", "bh_escrita_n2_2022", 644, 100],
+    ["barra", "VL_N03_CEBRASPE_ESCRITA_REG_2022", "bh_escrita_n3_2022", 644, 100],
+    ["barra", "VL_N04_CEBRASPE_ESCRITA_REG_2022", "bh_escrita_n4_2022", 644, 100],
+
+    ["barra", "VL_N01_CEBRASPE_ESCRITA_REG_2023", "bh_escrita_n1_2023", 644, 100],
+    ["barra", "VL_N02_CEBRASPE_ESCRITA_REG_2023", "bh_escrita_n2_2023", 644, 100],
+    ["barra", "VL_N03_CEBRASPE_ESCRITA_REG_2023", "bh_escrita_n3_2023", 644, 100],
+    ["barra", "VL_N04_CEBRASPE_ESCRITA_REG_2023", "bh_escrita_n4_2023", 644, 100], */
   ];
 
   for (var m = 0; m < pontos_graficos.length; m++) {
@@ -498,3 +592,6 @@ function coloreHabilidades() {
     }
   }
 }
+}
+
+

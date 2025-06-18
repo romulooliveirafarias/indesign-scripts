@@ -274,12 +274,13 @@ function encadear(documento) {
       previousPage.textFrames[previousPage.textFrames.length - 1];
     var firstTextFrame = currentPage.textFrames[0];
     lastTextFrame.nextTextFrame = firstTextFrame;
-  }
 
-  // Remova a seção da página
+    // Remova a seção da página
 if (currentPage.appliedSection) {
   currentPage.appliedSection.remove();
 }
+  }
+
 }
 
 //Função que remove as páginas mestras excessivas

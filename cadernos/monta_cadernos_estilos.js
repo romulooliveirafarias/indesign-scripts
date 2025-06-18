@@ -107,7 +107,7 @@ for (var k = 0; k < arquivos.length; k++) {
 var ArrayPrincipal = carregaCSV(selecionaCSV);
 
 // Criando Formulário
-// A Janela principal posuirá 4 painés:
+// A Janela principal posuirá 4 painéis:
 // 1. Informações sobre o caderno
 // 2. Informações sobre a capa
 // 3. Informações sobre o cabeçalho

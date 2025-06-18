@@ -1,6 +1,6 @@
 var main = function () {
   var pages = app.documents[0].spreads.everyItem().getElements();
-  var layerName = "escrita";
+  var layerName = "redimensiona";
   var layerArr, apis;
   for (var i = 0; i < pages.length; i++) {
     layerArr = new Array();
